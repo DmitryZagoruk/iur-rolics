@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>Разборы дел ИЮР</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap">
+<style>
+/* Layout: series picker on top, 9:16 stage 1080×1920 scaled to fit, controls below; record mode = stage only on black */
+:root{
+  --navy-0:#070E2E; --navy-1:#0D1A52; --navy-2:#1A2C86; --violet:#3B2391;
+  --white:#FFFFFF; --ink:#0D1A52; --mute:#9DB0E8; --line:#DCE3F5;
+  --red:#E3172F; --blue:#1C9BDF; --green:#13C14C;
+  --f-display:"Montserrat","Arial Black",system-ui,sans-serif;
+  --f-body:"Montserrat",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0}
+body{background:var(--navy-0);color:var(--white);font-family:var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:12px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:12px;overflow:hidden}
+#box{position:relative;flex:1 1 auto;width:100%;min-height:0;display:flex;align-items:center;justify-content:center}
+#frame{position:relative;overflow:hidden;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:0 0;overflow:hidden;
+  background:radial-gradient(120% 70% at 80% 0%,var(--navy-2) 0%,var(--navy-1) 45%,var(--navy-0) 100%)}
+#glow{position:absolute;width:1400px;height:1400px;left:-300px;top:1100px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,35,145,.75) 0%,rgba(59,35,145,0) 65%)}
+#grid{position:absolute;inset:-120px;opacity:.13;
+  background-image:linear-gradient(var(--mute) 1px,transparent 1px),linear-gradient(90deg,var(--mute) 1px,transparent 1px);
+  background-size:120px 120px}
+#inner{position:absolute;inset:0}
+#flash{position:absolute;inset:0;background:var(--white);opacity:0;pointer-events:none}
+.scene{position:absolute;inset:0;opacity:0}
+.abs{position:absolute}
+.cx{left:0;right:0;margin-inline:auto;width:fit-content}
+.w{display:inline-block}
+
+/* brand kit */
+#head{position:absolute;left:72px;top:96px;display:flex;align-items:center;gap:28px}
+.logo{width:96px;height:96px}
+.tag{font:700 30px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.pill{background:var(--white);color:var(--ink);font:800 32px/1 var(--f-body);letter-spacing:.04em;text-transform:uppercase;padding:16px 26px;border-radius:40px;white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:14px;font:800 32px/1 var(--f-body);text-transform:uppercase;letter-spacing:.06em;padding:16px 26px;border-radius:40px;color:#fff;white-space:nowrap}
+.chip.blue{background:var(--blue)} .chip.green{background:var(--green)} .chip.red{background:var(--red)}
+.chip.ghost{box-shadow:inset 0 0 0 4px var(--white)}
+.h{font:900 112px/1.02 var(--f-display);text-transform:uppercase;letter-spacing:-.01em;text-wrap:balance}
+.h.red{color:var(--red)} .h.c{text-align:center}
+.sub{font:600 52px/1.25 var(--f-body)}
+.card{background:var(--white);color:var(--ink);border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.card .val{font:800 104px/1 var(--f-display);font-variant-numeric:tabular-nums;padding:46px 40px 40px;text-align:center;letter-spacing:-.02em;white-space:nowrap}
+.card.sm .val{font-size:84px;padding:32px 30px 28px}
+.card .lab{font:800 30px/1 var(--f-body);color:var(--white);text-transform:uppercase;letter-spacing:.07em;text-align:center;padding:20px}
+.lab.red{background:var(--red)} .lab.blue{background:var(--blue)} .lab.green{background:var(--green)}
+.op{font:900 90px/1 var(--f-display);color:var(--mute);text-align:center;left:0;right:0}
+.sheet{background:var(--white);color:var(--ink);border-radius:14px;padding:34px 36px;box-shadow:0 30px 70px rgba(0,0,0,.45);box-sizing:border-box}
+.sheet .dt{font:900 50px/1.05 var(--f-display);text-transform:uppercase}
+.sheet .ds{font:600 28px/1.3 var(--f-body);color:#4A5A8F;margin-top:10px}
+.line{height:14px;border-radius:7px;background:var(--line);margin-top:18px}
+.ok{width:72px;height:72px;border-radius:50%;background:var(--green);display:grid;place-items:center;color:#fff;font:900 44px/1 var(--f-body);flex:none}
+.no{background:var(--red)}
+.row{display:flex;align-items:center;gap:28px;background:var(--white);color:var(--ink);border-radius:14px;padding:28px 36px;font:800 50px/1.1 var(--f-body);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.row .ok{margin-left:auto}
+.stamp{padding:24px 34px;border:12px solid var(--red);border-radius:22px;color:var(--red);font:900 84px/1 var(--f-display);text-align:center;letter-spacing:.03em;opacity:0;background:rgba(255,255,255,.0)}
+.stamp.on-dark{background:rgba(7,14,46,.55)}
+.track{position:relative;height:60px;border-radius:30px;background:rgba(157,176,232,.2);overflow:hidden}
+.fill{position:absolute;top:0;bottom:0;left:0;border-radius:30px}
+.blab{font:700 34px/1 var(--f-body);color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:0 0 14px}
+svg.ico{display:block}
+
+/* case 1 (facades) */
+#s1 .big{left:0;right:0;top:330px;text-align:center;font:900 460px/0.9 var(--f-display);letter-spacing:-.04em}
+#s1 .big2{left:0;right:0;top:760px;text-align:center;font:900 220px/1 var(--f-display);letter-spacing:.02em}
+#bldg{position:absolute;left:190px;top:640px;width:700px;height:900px;opacity:0}
+#s2 .year{left:72px;top:250px;font:900 240px/1 var(--f-display);letter-spacing:-.03em}
+#s3 .yr{left:0;right:0;top:420px;text-align:center;font:900 230px/1 var(--f-display);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+#s3 .yrl{left:0;right:0;top:650px;text-align:center;font:700 40px/1 var(--f-body);color:var(--mute);text-transform:uppercase;letter-spacing:.1em}
+.seg{position:absolute;top:0;bottom:0;left:0;border-radius:28px}
+.ticks{display:flex;justify-content:space-between;margin-top:18px;font:800 32px/1 var(--f-body)}
+
+/* CTA */
+#cta .logo{position:absolute;left:390px;top:400px;width:300px;height:300px}
+
+/* controls */
+#tabs,#ui{flex:none;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;max-width:720px}
+button{font:700 14px/1 var(--f-body);color:var(--ink);background:var(--white);border:0;border-radius:24px;padding:11px 16px;cursor:pointer}
+button.ghost{background:transparent;color:var(--white);box-shadow:inset 0 0 0 1.5px var(--mute)}
+#tabs button{background:transparent;color:var(--mute);box-shadow:inset 0 0 0 1.5px rgba(157,176,232,.4)}
+#tabs button[aria-pressed="true"]{background:var(--white);color:var(--ink);box-shadow:none}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+#time{font:600 13px/1 var(--f-body);color:var(--mute);font-variant-numeric:tabular-nums;min-width:86px;text-align:center}
+@media (max-width:600px){#tabs button .nm{display:none}}
+body.rec{background:#000;padding:0}
+body.rec #ui,body.rec #tabs{display:none}
+body.rec #frame{border-radius:0;box-shadow:none}
+#cover{position:fixed;inset:0;background:#000;z-index:5;display:none}
+body.rec.wait #cover{display:block}
+</style>
+
+<div id="tabs" role="group" aria-label="Серии"></div>
+<div id="box">
+  <div id="frame">
+    <div id="stage">
+      <div id="glow"></div>
+      <div id="grid"></div>
+      <div id="inner"></div>
+      <div id="flash"></div>
+    </div>
+  </div>
+</div>
+<div id="ui">
+  <button id="bPlay">Сначала</button>
+  <button id="bPause" class="ghost">Пауза</button>
+  <span id="time">0.0 / 0.0 с</span>
+  <button id="bRec" class="ghost">Режим записи</button>
+</div>
+<div id="cover"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(function(){
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const stage=$('#stage'), frame=$('#frame'), box=$('#box'), inner=$('#inner');
+function fit(){
+  const rec=document.body.classList.contains('rec');
+  const W=rec?innerWidth:box.clientWidth, H=rec?innerHeight:box.clientHeight;
+  const k=Math.min(W/1080,H/1920);
+  stage.style.transform='scale('+k+')';
+  frame.style.width=(1080*k)+'px'; frame.style.height=(1920*k)+'px';
+}
+addEventListener('resize',fit); fit();
+try{new ResizeObserver(fit).observe(box)}catch(e){}
+if(!window.gsap) return;
+
+const LOGO='<path fill="#fff" d="M53.8154 15.7783V42.4189L46.127 50.1152H28.21V55H19.3594V50.1152H7.6875L17.8789 41.5312H19.3594V39.9922L21.9551 38.0977L28.21 32.8076V41.5312H44.875V18.7812L51.3906 13.3506L53.7754 11.3975L53.8154 15.7783ZM8.92773 18.1953H19.3633V6.82324L26.1533 0H47.0254L51.6074 4.60449L44.8877 10.3311V8.08691H28.165V24.5195L19.3633 31.9697V26.0293H8.92773V40.8203L4.91602 44.2246H0V0H8.92773V18.1953Z"/>';
+const COURT=(c='#fff',w=9)=>`<svg class="ico" viewBox="0 0 200 160" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round"><path d="M14 52 L100 10 L186 52 Z"/><path d="M38 64 V128 M78 64 V128 M122 64 V128 M162 64 V128"/><path d="M10 146 H190"/></svg>`;
+const SIGN='<path class="sig" d="M10 62 C34 8 52 78 78 34 S118 70 140 30 S178 52 196 22" fill="none" stroke="#1C9BDF" stroke-width="6" stroke-linecap="round"/>';
+const fmt=n=>Math.round(n).toLocaleString('ru-RU').replace(/ /g,' ')+' ₽';
+const S=(id,html)=>`<section class="scene" id="${id}">${html}</section>`;
+const H=(t,st,cls='')=>`<div class="abs h ${cls}" data-words style="${st}">${t}</div>`;
+const CARD=(id,val,lab,col,st,cls='')=>`<div class="abs card ${cls}" style="${st}"><div class="val" ${id?`id="${id}"`:''}>${val}</div><div class="lab ${col}">${lab}</div></div>`;
+
+/* ---------------- CASES ---------------- */
+const CASES=[
+/* 1 — Фасады, мировое */
+{name:'Фасады · 10,2 млн',cta:'Разберём ваш долг',
+html:()=>`<svg id="bldg" viewBox="0 0 700 900"></svg>`+
+S('s1',`<div class="abs big">10</div><div class="abs big2">ЛЕТ</div>
+ <div class="abs sub" data-words style="left:90px;right:90px;top:1010px;text-align:center;font-size:60px">подрядчик ждал оплату за фасады</div>
+ ${CARD('c1','0 ₽','не заплатили по госконтракту','red','left:90px;right:90px;top:1210px')}`)+
+S('s2',`<div class="abs year">2011</div><div class="abs pill" style="left:80px;top:500px">Госконтракт · вентфасады</div>
+ <div class="abs sheet" id="ks" style="left:520px;top:1150px;width:470px"><div class="dt">КС-2</div><div class="ds">Акт о приёмке работ</div>
+ <div class="line" style="width:90%"></div><div class="line" style="width:70%"></div>
+ <div style="display:flex;align-items:center;gap:16px;margin-top:28px;font:800 34px/1 var(--f-body);color:var(--green)"><span class="ok" style="width:56px;height:56px;font-size:34px">✓</span>Работы приняты</div></div>`)+
+S('s3',`${H('А денег нет','left:72px;right:72px;top:250px')}<div class="abs yr" id="yr">2012</div><div class="abs yrl">лет ждём оплату: <span id="yn">1</span></div>`)+
+S('s4',`<div class="abs court" style="left:340px;top:250px;width:400px">${COURT()}</div>
+ <div class="abs h c" style="left:72px;right:72px;top:610px">Иск в арбитраж</div>
+ <div class="abs pill cx" style="top:860px">Дело А05-8519/2021</div>
+ <div class="abs sheet lim" style="left:72px;right:72px;top:1010px;padding:40px 44px 44px"><div class="dt" style="font-size:46px">Срок давности</div>
+  <div class="track" style="margin-top:36px;background:#E3E8F6"><div class="seg sr" style="background:var(--red);width:100%"></div><div class="seg sg" style="background:var(--green);width:30%;z-index:2"></div></div>
+  <div class="ticks"><span class="ta" style="color:var(--green)">3 года по закону</span><span class="tb" style="color:var(--red)">прошло 10</span></div></div>
+ <div class="abs warn" style="left:72px;right:72px;top:1390px;text-align:center;font:800 60px/1.15 var(--f-display);text-transform:uppercase;color:var(--red)">Суд мог <span style="color:#fff">отказать</span></div>`)+
+S('s5',`${H('Но случился поворот','left:72px;right:72px;top:250px')}
+ <div class="abs sheet" id="mir" style="left:110px;right:110px;top:560px;padding:56px 56px 70px"><div class="dt" style="font-size:62px;text-align:center">Мировое соглашение</div><div class="ds" style="text-align:center;font-size:30px">Арбитражный суд · 2021</div>
+  <div class="line"></div><div class="line" style="width:80%"></div>
+  <div style="margin-top:40px;font:800 46px/1.2 var(--f-body)">Заказчик признаёт долг<b style="display:block;font:900 92px/1.05 var(--f-display);margin-top:10px">10 191 156 ₽</b></div>
+  <div class="line" style="width:60%;margin-top:30px"></div></div>
+ <div class="abs stamp" id="st1" style="left:400px;top:1170px;width:540px;mix-blend-mode:multiply">ПРИЗНАЮ</div>`)+
+S('s6',`${H('Итог по мировому','left:72px;right:72px;top:250px')}
+ ${CARD('c6','0 ₽','долг признан и оплачен','green','left:72px;right:72px;top:560px')}
+ ${CARD('','3 мес.','срок оплаты','blue','left:72px;width:450px;top:930px','sm')}
+ ${CARD('','70%','вернули пошлины','blue','right:72px;width:450px;top:930px','sm')}
+ <div class="abs note" style="left:72px;right:72px;top:1250px;font:600 44px/1.3 var(--f-body);color:var(--mute)"><b style="color:#fff">Ход:</b> признание долга спасло от срока давности.</div>`)+
+S('s7',`<div class="abs pre" style="left:72px;right:72px;top:380px;font:700 56px/1.25 var(--f-body);color:var(--mute)">Без признания долга <b style="color:#fff">суд отказал бы по сроку давности</b></div>
+ <div class="abs h" style="left:72px;right:72px;top:640px;font-size:170px;line-height:.95">Не ждите <em style="font-style:normal;color:var(--red)">10</em> лет</div>
+ ${CARD('','3 года','весь срок давности','red','left:72px;width:620px;top:1250px','sm')}`),
+build(tl,A){
+  const svg=$('#bldg'),NS='http://www.w3.org/2000/svg';
+  const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e};
+  mk('rect',{class:'bf',x:40,y:40,width:620,height:820,fill:'none',stroke:'#9DB0E8','stroke-width':6,'stroke-dasharray':'14 10'});
+  for(let r=0;r<7;r++)for(let c=0;c<5;c++)mk('rect',{class:'panel',x:60+c*118,y:70+r*114,width:108,height:104,rx:4,fill:(r+c)%3===0?'#7FB0F2':'#3D7BE0'});
+  mk('rect',{x:0,y:862,width:700,height:10,fill:'#FFFFFF'});
+  const yr={v:2012};
+  A.show('#s1',0);
+  tl.from('#s1 .big',{scale:1.7,opacity:0,filter:'blur(30px)',duration:.7,ease:'power4.out'},.1)
+    .from('#s1 .big2',{y:80,opacity:0,duration:.45,ease:'power3.out'},.4);
+  A.h('#s1 .sub',.55); A.pop('#s1 .card',1.05); A.count('c1',10191156,1.15,1.4);
+  A.out('#s1',3.1,{y:-220});
+  A.show('#s2',3.4);
+  tl.from('#s2 .year',{x:-340,opacity:0,duration:.55,ease:'power3.out'},3.4)
+    .from('#s2 .pill',{y:30,opacity:0,duration:.4},3.65)
+    .to('#bldg',{opacity:1,duration:.3},3.6)
+    .from('.bf',{opacity:0,scaleY:0,transformOrigin:'50% 100%',duration:.45},3.6)
+    .from('.panel',{opacity:0,x:240,y:-60,rotation:20,transformOrigin:'50% 50%',stagger:{each:.032,from:'end'},duration:.38,ease:'power3.out'},3.9)
+    .from('#ks',{y:360,rotation:10,opacity:0,duration:.55,ease:'back.out(1.4)'},5.4);
+  A.out('#s2',7.5,{y:-70});
+  A.show('#s3',7.85); A.h('#s3 .h',7.85);
+  tl.to('#bldg',{y:180,scale:.82,transformOrigin:'50% 100%',duration:.6,ease:'power2.inOut'},7.85)
+    .from('#s3 .yr,#s3 .yrl',{opacity:0,duration:.3},8.3)
+    .to(yr,{v:2021,duration:2.3,ease:'power1.in',onUpdate:()=>{const y=Math.round(yr.v),a=$('#yr'),b=$('#yn');if(a){a.textContent=y;b.textContent=y-2011}}},8.4)
+    .to('.panel',{attr:{fill:'#39436A'},stagger:{each:.06,from:'random'},duration:.3},8.4)
+    .to('#s3 .yr',{color:'#E3172F',duration:.25},10.6);
+  A.shake('#s3 .yr',10.6);
+  tl.to(['#s3','#bldg'],{opacity:0,y:'+=80',duration:.4,ease:'power2.in'},11.3);
+  A.show('#s4',11.7);
+  tl.from('#s4 .court',{y:-120,opacity:0,duration:.5,ease:'power3.out'},11.7)
+    .from('#s4 .h',{scale:.8,opacity:0,duration:.45,ease:'back.out(1.6)'},11.9)
+    .from('#s4 .pill',{y:30,opacity:0,duration:.35},12.2);
+  A.pop('#s4 .lim',12.9,{ease:'power3.out',y:140});
+  tl.from('.sg',{width:0,duration:.6,ease:'power2.out'},13.35).from('.ta',{opacity:0,duration:.3},13.6)
+    .from('.sr',{width:0,duration:1,ease:'power1.inOut'},14.0).from('.tb',{opacity:0,duration:.3},14.7);
+  A.shake('#s4 .lim',15.0); A.fade('#s4 .warn',15.1);
+  A.out('#s4',16.9,{x:-260,y:0});
+  A.show('#s5',17.25); A.h('#s5 .h',17.25);
+  tl.from('#mir',{x:520,rotation:6,opacity:0,duration:.55,ease:'power3.out'},17.5);
+  A.stamp('#st1',18.75,-12);
+  A.out('#s5',21.2);
+  A.show('#s6',21.55); A.h('#s6 .h',21.55); A.pop('#s6 .card:nth-of-type(2)',21.85);
+  A.count('c6',10191156,21.95); A.pop('#s6 .card:nth-of-type(3)',22.7); A.pop('#s6 .card:nth-of-type(4)',22.95); A.fade('#s6 .note',23.7);
+  A.out('#s6',26.8,{y:0,scale:.94});
+  A.show('#s7',27.15); A.fade('#s7 .pre',27.15);
+  tl.from('#s7 .h',{scale:1.35,opacity:0,filter:'blur(20px)',duration:.6,ease:'power4.out'},27.7);
+  A.pop('#s7 .card',28.4,{x:-300,y:0});
+  A.out('#s7',30.9,{y:0});
+  return 31.25;
+}},
+
+/* 2 — А40-82353/18, подписанные акты */
+{name:'Акты · 4,55 млн',cta:'Разберём ваш долг',
+html:()=>S('a1',`<div class="abs pill" style="left:72px;top:250px">Дело А40-82353/18</div>
+ ${H('Акты подписал','left:72px;right:72px;top:360px')}
+ ${H('а не заплатил','left:72px;right:72px;top:600px','red')}
+ ${CARD('k1','0 ₽','долг + неустойка','red','left:72px;right:72px;top:960px')}`)+
+S('a2',`<div class="abs chip green" style="left:72px;top:250px">✓ КС-2 подписаны</div>
+ ${[0,1,2,3,4].map(i=>`<div class="abs sheet sh" style="left:${90+i*130}px;top:${420+Math.abs(i-2)*18}px;width:340px;height:440px;transform:rotate(${-10+i*5}deg)">
+   <div class="dt" style="font-size:40px">КС-2</div><div class="line"></div><div class="line" style="width:70%"></div><div class="line" style="width:85%"></div>
+   <svg viewBox="0 0 210 80" style="position:absolute;left:30px;bottom:34px;width:200px">${SIGN}</svg></div>`).join('')}
+ <div class="abs" id="bars" style="left:72px;right:72px;top:1010px;display:grid;gap:34px">
+  <div><p class="blab">Подписано</p><div class="track"><div class="fill" id="bS" style="width:100%;background:var(--blue)"></div></div></div>
+  <div><p class="blab">Оплачено</p><div class="track"><div class="fill" id="bG" style="width:100%;background:var(--red)"></div><div class="fill" id="bP" style="width:78%;background:var(--green)"></div></div></div>
+ </div>
+ <div class="abs chip red" id="gap" style="right:72px;top:1310px">долг</div>`)+
+S('a3',`<div class="abs chip ghost" style="left:72px;top:250px">ход юристов</div>
+ ${H('Подпись = признание','left:72px;right:72px;top:340px')}
+ <div class="abs sheet" id="bigks" style="left:250px;top:640px;width:580px;height:620px">
+  <div class="dt">Акт КС-2</div><div class="ds">Приёмка выполненных работ</div>
+  <div class="line"></div><div class="line" style="width:80%"></div><div class="line" style="width:90%"></div><div class="line" style="width:60%"></div>
+  <svg viewBox="0 0 330 140" style="position:absolute;left:60px;bottom:40px;width:330px;overflow:visible">
+   <g transform="translate(40,30)">${SIGN}</g>
+   <ellipse class="ring" cx="150" cy="70" rx="165" ry="70" fill="none" stroke="#E3172F" stroke-width="8"/></svg></div>
+ <div class="abs chip blue cx" id="plus" style="top:1330px">+ неустойка</div>`)+
+S('a4',`${H('Итог','left:72px;right:72px;top:250px')}
+ ${CARD('','4 551 275 ₽','долг + неустойка','red','left:72px;right:72px;top:420px','sm a')}
+ <div class="abs op o1" style="top:660px">−</div>
+ ${CARD('','650 000 ₽','юристы + гонорар успеха','blue','left:72px;right:72px;top:750px','sm b')}
+ <div class="abs op o2" style="top:990px">=</div>
+ ${CARD('k4','0 ₽','на руки клиенту','green','left:72px;right:72px;top:1080px','c')}`)+
+S('a5',`${H('Акт подписан — долг доказан','left:72px;right:72px;top:620px;font-size:150px','c')}`),
+build(tl,A){
+  A.show('#a1',0); tl.from('#a1 .pill',{y:30,opacity:0,duration:.4},.1); A.h('#a1 .h:not(.red)',.3); A.h('#a1 .h.red',.9);
+  A.pop('#a1 .card',1.4); A.count('k1',4551275,1.5); A.out('#a1',3.6);
+  A.show('#a2',4.0); A.fade('#a2 .chip.green',4.0);
+  tl.from('#a2 .sh',{y:600,opacity:0,rotation:0,stagger:.14,duration:.5,ease:'back.out(1.3)'},4.2);
+  A.draw('#a2 .sig',4.9,.4,.15);
+  A.fade('#bars',6.4);
+  tl.from('#bS',{width:0,duration:.6,ease:'power2.out'},6.6).set('#bG',{opacity:0},0).to('#bG',{opacity:1,duration:.01},8.1)
+    .from('#bP',{width:0,duration:.8,ease:'power2.out'},7.3);
+  A.pop('#gap',8.2,{scale:.4,y:0,ease:'back.out(3)'}); A.shake('#bars',8.2);
+  A.out('#a2',9.6);
+  A.show('#a3',10.0); A.fade('#a3 .chip.ghost',10.0); A.h('#a3 .h',10.2);
+  tl.from('#bigks',{y:500,opacity:0,duration:.55,ease:'power3.out'},10.5);
+  A.draw('#bigks .sig',10.9,.5); A.draw('#bigks .ring',11.5,.5);
+  A.pop('#plus',12.3,{scale:.5,y:0,ease:'back.out(2.5)'});
+  A.out('#a3',13.9);
+  A.show('#a4',14.3); A.h('#a4 .h',14.3); A.pop('#a4 .a',14.6); A.fade('#a4 .o1',15.1); A.pop('#a4 .b',15.3); A.fade('#a4 .o2',15.9);
+  A.pop('#a4 .c',16.1); A.count('k4',3901275,16.2,1.2); tl.to('#a4 .c',{scale:1.04,yoyo:true,repeat:1,duration:.15},17.45);
+  A.out('#a4',19.4,{y:0,scale:.94});
+  A.show('#a5',19.8); A.h('#a5 .h',19.8); A.out('#a5',22.8);
+  return 23.2;
+}},
+
+/* 3 — Госзаказчик, 3 инстанции */
+{name:'Госзаказчик · 56,2 млн',cta:'Разберём ваш долг',
+html:()=>S('g1',`<div class="abs pill" style="left:72px;top:250px">Госзаказчик · 3 инстанции</div>
+ ${H('Оплатил частично','left:72px;right:72px;top:360px')}
+ ${CARD('q1','0 ₽','взыскали','green','left:72px;right:72px;top:820px')}`)+
+S('g2',`<svg class="abs" id="ring" viewBox="0 0 600 600" style="left:240px;top:330px;width:600px;height:600px;transform:rotate(-90deg)">
+   <circle cx="300" cy="300" r="250" fill="none" stroke="#E3172F" stroke-width="64" id="rRed"/>
+   <circle cx="300" cy="300" r="250" fill="none" stroke="#13C14C" stroke-width="64" id="rGreen" stroke-dasharray="550 1571"/></svg>
+ <div class="abs chip green" id="paid" style="left:72px;top:290px">оплачено</div>
+ ${CARD('','51 360 000 ₽','не оплачено','red','left:72px;right:72px;top:1040px')}`)+
+S('g3',`<div class="abs chip ghost" style="left:72px;top:250px">ход юристов</div>
+ ${H('Претензия','left:72px;right:72px;top:340px')}
+ <div class="abs sheet" id="pret" style="left:200px;top:560px;width:680px;height:620px">
+  <div class="dt" style="font-size:60px">Претензия</div><div class="ds">Досудебное требование об оплате</div>
+  <div class="line"></div><div class="line" style="width:85%"></div>
+  <div style="margin-top:44px;font:900 84px/1 var(--f-display);font-variant-numeric:tabular-nums">51 360 000 ₽</div>
+  <div class="line" style="width:70%;margin-top:40px"></div><div class="line" style="width:50%"></div></div>
+ <div class="abs chip red cx" id="nores" style="top:1300px">дальше — суд</div>`)+
+S('g4',`${H('Три инстанции','left:72px;right:72px;top:250px')}
+ ${['Первая инстанция','Апелляция','Кассация'].map((t,i)=>`<div class="abs row r${i}" style="left:72px;right:72px;top:${520+i*230}px"><div style="width:110px">${COURT('#0D1A52',12)}</div>${t}<span class="ok">✓</span></div>`).join('')}`)+
+S('g5',`${CARD('','51 360 000 ₽','основной долг','blue','left:72px;right:72px;top:300px','sm a')}
+ <div class="abs op o1" style="top:540px">+</div>
+ ${CARD('','4 888 400 ₽','неустойка','blue','left:72px;right:72px;top:630px','sm b')}
+ <div class="abs op o2" style="top:870px">=</div>
+ ${CARD('q5','0 ₽','взыскано','green','left:72px;right:72px;top:960px','c')}`)+
+S('g6',`${H('Госзаказчик тоже платит','left:72px;right:72px;top:640px;font-size:150px','c')}`),
+build(tl,A){
+  A.show('#g1',0); tl.from('#g1 .pill',{y:30,opacity:0,duration:.4},.1); A.h('#g1 .h',.3);
+  A.pop('#g1 .card',1.0); A.count('q1',56248400,1.1,1.5); A.out('#g1',3.6);
+  A.show('#g2',4.0); tl.from('#ring',{scale:.5,opacity:0,duration:.5,ease:'back.out(1.5)'},4.0)
+    .fromTo('#rGreen',{attr:{'stroke-dasharray':'0 1571'}},{attr:{'stroke-dasharray':'550 1571'},duration:1,ease:'power2.out'},4.4);
+  A.pop('#paid',5.1,{scale:.5,y:0,ease:'back.out(2.5)'}); A.pop('#g2 .card',5.8); A.shake('#g2 .card',6.5);
+  A.out('#g2',8.6);
+  A.show('#g3',9.0); A.fade('#g3 .chip.ghost',9.0); A.h('#g3 .h',9.2);
+  tl.from('#pret',{y:500,opacity:0,duration:.55,ease:'power3.out'},9.5)
+    .to('#pret',{x:900,y:-500,rotation:25,scale:.4,opacity:0,duration:.6,ease:'power3.in'},11.3);
+  A.pop('#nores',11.8,{scale:.5,y:0,ease:'back.out(2.5)'});
+  A.out('#g3',12.8);
+  A.show('#g4',13.2); A.h('#g4 .h',13.2);
+  [0,1,2].forEach(i=>{A.pop('#g4 .r'+i,13.6+i*.8,{x:-400,y:0,ease:'power3.out'});A.pop('#g4 .r'+i+' .ok',13.95+i*.8,{scale:0,y:0,ease:'back.out(3)'})});
+  A.out('#g4',17.8);
+  A.show('#g5',18.2); A.pop('#g5 .a',18.2); A.fade('#g5 .o1',18.7); A.pop('#g5 .b',18.9); A.fade('#g5 .o2',19.5);
+  A.pop('#g5 .c',19.7); A.count('q5',56248400,19.8,1.3); tl.to('#g5 .c',{scale:1.04,yoyo:true,repeat:1,duration:.15},21.15);
+  A.out('#g5',23.0,{y:0,scale:.94});
+  A.show('#g6',23.4); A.h('#g6 .h',23.4); A.out('#g6',26.2);
+  return 26.6;
+}},
+
+/* 4 — Проектировщик, зачёт отклонён */
+{name:'Зачёт · 51,9 млн',cta:'Разберём ваш спор',
+html:()=>S('b1',`<div class="abs pill" style="left:72px;top:250px">Дело А40-127013/2023</div>
+ ${H('Проектировщику не заплатили','left:72px;right:72px;top:360px;font-size:90px')}
+ ${CARD('p1','0 ₽','взыскали: долг + неустойка','green','left:72px;right:72px;top:860px')}`)+
+S('b2',`${['Договор 1','Договор 2'].map((t,i)=>`<div class="abs sheet f${i}" style="left:${72+i*486}px;top:330px;width:450px;height:560px">
+   <div class="dt" style="font-size:48px">${t}</div><div class="line"></div><div class="line" style="width:75%"></div>
+   <div class="chip blue" style="margin-top:34px;font-size:24px;padding:12px 18px">+ доп. соглашения</div>
+   <div style="position:absolute;left:36px;bottom:36px;display:flex;align-items:center;gap:16px;font:800 34px/1 var(--f-body);color:var(--green)"><span class="ok">✓</span>Выполнено</div></div>`).join('')}
+ <div class="abs chip red cx" id="unpaid" style="top:980px">не оплачено</div>`)+
+S('b3',`<div class="abs chip ghost" id="hod" style="left:72px;top:250px">ход юристов</div>
+ ${H('Заказчик: «зачтём»','left:72px;right:72px;top:250px','hz')}
+ ${H('Зачёт отклонён','left:72px;right:72px;top:340px','hx')}
+ <svg class="abs" viewBox="0 0 1080 1920" style="inset:0;width:1080px;height:1920px;overflow:visible">
+  <rect x="528" y="720" width="24" height="560" fill="#9DB0E8"/><rect x="390" y="1270" width="300" height="22" rx="6" fill="#fff"/>
+  <g id="beam"><rect x="190" y="708" width="700" height="18" rx="9" fill="#fff"/><circle cx="540" cy="717" r="26" fill="#1C9BDF"/></g>
+  <g id="panL"><path d="M200 717 L90 980 M200 717 L310 980" stroke="#9DB0E8" stroke-width="5"/><rect x="70" y="976" width="260" height="16" rx="8" fill="#fff"/></g>
+  <g id="panR"><path d="M880 717 L770 980 M880 717 L990 980" stroke="#9DB0E8" stroke-width="5"/><rect x="750" y="976" width="260" height="16" rx="8" fill="#fff"/></g>
+ </svg>
+ <div class="abs card" id="blkL" style="left:85px;top:806px;width:230px;height:170px;display:grid;place-items:center;font:900 46px/1.1 var(--f-display);text-align:center;color:var(--ink)">ДОЛГ<br>51,9 млн</div>
+ <div class="abs" id="blkR" style="left:755px;top:756px;width:250px;height:220px;border-radius:14px;background:var(--red);display:grid;place-items:center;text-align:center;font:900 34px/1.15 var(--f-display);color:#fff;text-transform:uppercase">Встречные<br>требования
+   <svg viewBox="0 0 250 220" style="position:absolute;inset:0;overflow:visible"><path class="xx" d="M20 20 L230 200 M230 20 L20 200" stroke="#fff" stroke-width="16" stroke-linecap="round" fill="none"/></svg></div>
+ <div class="abs chip ghost" id="other" style="left:735px;top:1060px;font-size:26px;padding:12px 18px">другой договор</div>`)+
+S('b4',`${CARD('p4','0 ₽','долг + неустойка','green','left:72px;right:72px;top:480px')}
+ <div class="abs" id="inst" style="left:72px;right:72px;top:860px;display:flex;gap:24px;justify-content:center;flex-wrap:wrap">
+  <span class="chip green">✓ апелляция</span><span class="chip green">✓ кассация</span></div>`)+
+S('b5',`${H('Чужим договором долг не закрыть','left:72px;right:72px;top:560px;font-size:140px','c')}`),
+build(tl,A){
+  A.show('#b1',0); tl.from('#b1 .pill',{y:30,opacity:0,duration:.4},.1); A.h('#b1 .h',.3);
+  A.pop('#b1 .card',1.3); A.count('p1',51878676,1.4,1.5); A.out('#b1',3.6);
+  A.show('#b2',4.0); A.pop('#b2 .f0',4.0,{y:400}); A.pop('#b2 .f1',4.3,{y:400});
+  A.pop('#b2 .f0 .ok',5.0,{scale:0,y:0,ease:'back.out(3)'}); A.pop('#b2 .f1 .ok',5.3,{scale:0,y:0,ease:'back.out(3)'});
+  A.pop('#unpaid',6.4,{scale:.5,y:0,ease:'back.out(2.5)'}); A.shake('#unpaid',6.9);
+  A.out('#b2',8.4);
+  A.show('#b3',8.8); tl.set('#hod,#b3 .hx',{opacity:0},0);
+  A.h('#b3 .hz',8.8);
+  tl.from('#beam,#panL,#panR',{opacity:0,y:60,duration:.5,ease:'power3.out',stagger:.08},9.0);
+  A.pop('#blkL',9.5,{y:-300,ease:'bounce.out',duration:.7});
+  tl.from('#blkR',{y:-900,duration:.6,ease:'power3.in'},10.4);
+  tl.to('#beam',{rotation:8,svgOrigin:'540 717',duration:.5,ease:'power2.out'},11.0)
+    .to('#panL,#blkL',{y:-49,duration:.5,ease:'power2.out'},11.0)
+    .to('#panR,#blkR',{y:49,duration:.5,ease:'power2.out'},11.0);
+  A.fade('#other',11.3);
+  tl.to('#b3 .hz',{opacity:0,duration:.3},12.6).to('#hod',{opacity:1,duration:.3},12.6);
+  tl.to('#other',{scale:1.15,yoyo:true,repeat:3,duration:.2},12.9);
+  A.draw('#b3 .xx',13.6,.5);
+  tl.to('#blkR,#other',{y:900,rotation:35,opacity:0,duration:.7,ease:'power3.in'},14.4)
+    .to('#beam',{rotation:-6,svgOrigin:'540 717',duration:.6,ease:'back.out(2)'},14.9)
+    .to('#panL,#blkL',{y:37,duration:.6,ease:'back.out(2)'},14.9)
+    .to('#panR',{y:-37,duration:.6,ease:'back.out(2)'},14.9)
+    .to('#b3 .hx',{opacity:1,duration:.01},15.2);
+  A.h('#b3 .hx',15.2);
+  A.out('#b3',17.6);
+  A.show('#b4',18.0); A.pop('#b4 .card',18.0); A.count('p4',51878676,18.1,1.4);
+  tl.from('#inst .chip',{scale:.4,opacity:0,stagger:.3,duration:.4,ease:'back.out(2.5)'},19.6);
+  A.out('#b4',22.4);
+  A.show('#b5',22.8); A.h('#b5 .h',22.8); A.out('#b5',26.0);
+  return 26.4;
+}},
+
+/* 5 — Муниципальный заказчик, допработы, 44-ФЗ */
+{name:'Допработы · 5,97 млн',cta:'Разберём ваш долг',
+html:()=>S('m1',`<div class="abs pill" style="left:72px;top:250px">44-ФЗ · муниципальный заказчик</div>
+ ${H('«Денег нет»','left:72px;right:72px;top:420px;font-size:180px')}
+ ${CARD('d1','0 ₽','взыскали','green','left:72px;right:72px;top:860px')}`)+
+S('m2',`<div class="abs card" id="bub" style="left:420px;top:300px;width:588px;box-sizing:border-box;padding:34px 40px;font:800 52px/1.15 var(--f-body);overflow:visible">Нужно доделать
+   <svg viewBox="0 0 60 50" style="position:absolute;left:70px;bottom:-44px;width:60px"><path d="M0 0 H60 L10 50 Z" fill="#fff"/></svg></div>
+ ${[0,1,2].map(i=>`<div class="abs blk base" style="left:340px;width:500px;top:${1120-i*140}px;height:126px;border-radius:10px;background:${i%2?'#3D7BE0':'#2F67C8'}"></div>`).join('')}
+ <div class="abs chip ghost" style="left:72px;top:1300px;font-size:26px">контракт</div>
+ ${[0,1].map(i=>`<div class="abs blk ex" style="left:340px;width:500px;top:${700-i*140}px;height:126px;border-radius:10px;background:rgba(28,155,223,.25);box-shadow:inset 0 0 0 6px var(--blue)"></div>`).join('')}
+ <div class="abs chip blue" id="dop" style="left:72px;top:620px;font-size:26px">допработы</div>
+ <div class="abs stamp on-dark" id="st5" style="left:120px;top:300px;width:772px;font-size:62px;line-height:1.1">НЕТ<br>ФИНАНСИРОВАНИЯ</div>`)+
+S('m3',`<div class="abs chip ghost" style="left:72px;top:250px">ход юристов</div>
+ <div class="abs row r0" style="left:72px;right:72px;top:400px"><span class="ok">✓</span>Просил сам заказчик</div>
+ <div class="abs row r1" style="left:72px;right:72px;top:600px"><span class="ok">✓</span>Нужно для цели контракта</div>
+ <div class="abs" id="excuse" style="left:72px;right:72px;top:860px;padding:40px;border-radius:14px;box-shadow:inset 0 0 0 6px rgba(157,176,232,.5);font:900 46px/1.1 var(--f-display);text-align:center;color:var(--mute);white-space:nowrap">«НЕТ ФИНАНСИРОВАНИЯ»
+   <svg viewBox="0 0 936 160" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible"><path class="xx" d="M20 80 L916 80" stroke="#E3172F" stroke-width="14" stroke-linecap="round" fill="none"/></svg></div>
+ <div class="abs chip red cx" id="notarg" style="top:1110px">не довод</div>`)+
+S('m4',`<div class="abs" style="left:390px;top:280px;width:300px">${COURT()}</div>
+ <div class="abs chip green cx" style="top:560px">✓ апелляция</div>
+ ${CARD('d4','0 ₽','допработы оплачены','green','left:72px;right:72px;top:700px')}`)+
+S('m5',`${H('«Нет бюджета» — не отговорка','left:72px;right:72px;top:600px;font-size:140px','c')}`),
+build(tl,A){
+  A.show('#m1',0); tl.from('#m1 .pill',{y:30,opacity:0,duration:.4},.1);
+  tl.from('#m1 .h',{scale:1.5,opacity:0,filter:'blur(20px)',duration:.6,ease:'power4.out'},.4);
+  A.pop('#m1 .card',1.2); A.count('d1',5970131,1.3,1.4); A.out('#m1',3.6);
+  A.show('#m2',4.0);
+  tl.from('#m2 .base',{y:600,opacity:0,stagger:.15,duration:.45,ease:'power3.out'},4.0);
+  A.fade('#m2 .chip.ghost',4.5);
+  A.pop('#bub',5.0,{scale:.4,y:0,transformOrigin:'15% 100%',ease:'back.out(2)'});
+  tl.from('#m2 .ex',{y:-700,opacity:0,stagger:.25,duration:.5,ease:'bounce.out'},5.8);
+  A.pop('#dop',6.6,{scale:.5,y:0,ease:'back.out(2.5)'});
+  tl.to('#bub',{opacity:0,scale:.8,duration:.3},8.0);
+  A.stamp('#st5',8.4,-8);
+  tl.to('#m2 .ex',{background:'rgba(227,23,47,.35)',boxShadow:'inset 0 0 0 6px #E3172F',duration:.3},8.9)
+    .to('#dop',{backgroundColor:'#E3172F',duration:.3},8.9);
+  A.out('#m2',11.2);
+  A.show('#m3',11.6); A.fade('#m3 .chip.ghost',11.6);
+  A.pop('#m3 .r0',12.0,{x:-400,y:0,ease:'power3.out'}); A.pop('#m3 .r0 .ok',12.35,{scale:0,y:0,ease:'back.out(3)'});
+  A.pop('#m3 .r1',12.8,{x:-400,y:0,ease:'power3.out'}); A.pop('#m3 .r1 .ok',13.15,{scale:0,y:0,ease:'back.out(3)'});
+  A.fade('#excuse',13.8); A.draw('#excuse .xx',14.4,.4); A.pop('#notarg',14.8,{scale:.5,y:0,ease:'back.out(2.5)'});
+  A.out('#m3',16.6);
+  A.show('#m4',17.0); tl.from('#m4 .ico',{y:-150,opacity:0,duration:.5,ease:'power3.out'},17.0);
+  A.pop('#m4 .chip',17.5,{scale:.5,y:0,ease:'back.out(2.5)'}); A.pop('#m4 .card',17.9); A.count('d4',5970131,18.0,1.3);
+  A.out('#m4',21.2);
+  A.show('#m5',21.6); A.h('#m5 .h',21.6); A.out('#m5',24.6);
+  return 25.0;
+}},
+
+/* 6 — Встречный иск отклонён (сверить данные) */
+{name:'Встречный иск · 860 тыс.',cta:'Разберём ваш долг',
+html:()=>S('v1',`${H('Не заплатил и подал встречный иск','left:72px;right:72px;top:300px')}
+ ${CARD('w1','0 ₽','взыскали','green','left:72px;right:72px;top:860px')}`)+
+S('v2',`<div class="abs side l" style="left:72px;top:520px;width:300px;text-align:center">
+   <svg viewBox="0 0 200 200" style="width:240px"><circle cx="100" cy="100" r="96" fill="#fff"/><path d="M42 118 Q42 62 100 62 Q158 62 158 118 Z" fill="#1C9BDF"/><rect x="30" y="116" width="140" height="18" rx="9" fill="#0D1A52"/><rect x="92" y="50" width="16" height="30" rx="6" fill="#0D1A52"/></svg>
+   <div class="blab" style="margin-top:20px">подрядчик</div></div>
+ <div class="abs side r" style="right:72px;top:520px;width:300px;text-align:center">
+   <svg viewBox="0 0 200 200" style="width:240px"><circle cx="100" cy="100" r="96" fill="#fff"/><rect x="60" y="48" width="80" height="110" fill="#0D1A52"/>${[0,1,2,3].map(r=>[0,1].map(c=>`<rect x="${74+c*30}" y="${60+r*24}" width="20" height="14" fill="#7FB0F2"/>`).join('')).join('')}<rect x="40" y="156" width="120" height="10" fill="#0D1A52"/></svg>
+   <div class="blab" style="margin-top:20px">заказчик</div></div>
+ <div class="abs" id="arr1" style="left:330px;top:600px;width:420px;height:24px;background:var(--green);border-radius:12px"><svg viewBox="0 0 40 60" style="position:absolute;right:-26px;top:-18px;width:40px"><path d="M0 0 L40 30 L0 60 Z" fill="#13C14C"/></svg></div>
+ <div class="abs chip green" id="work" style="left:390px;top:500px;font-size:26px">работы ✓</div>
+ <div class="abs" id="arr2" style="left:330px;top:960px;width:420px;height:110px;background:var(--red);border-radius:14px;display:grid;place-items:center;font:900 36px/1 var(--f-display);color:#fff;text-transform:uppercase">встречный иск
+   <svg viewBox="0 0 60 140" style="position:absolute;left:-46px;top:-15px;width:60px"><path d="M60 0 L0 70 L60 140 Z" fill="#E3172F"/></svg></div>
+ ${Array.from({length:10},(_,i)=>`<div class="abs shard" style="left:${340+(i%5)*84}px;top:${960+Math.floor(i/5)*55}px;width:76px;height:50px;background:var(--red);border-radius:6px;opacity:0"></div>`).join('')}
+ <div class="abs" id="ct6" style="left:390px;top:250px;width:300px;opacity:0">${COURT()}</div>
+ <div class="abs stamp on-dark" id="st6" style="left:250px;top:1180px;width:580px">ОТКЛОНЁН</div>`)+
+S('v3',`${CARD('w3','0 ₽','долг взыскан','green','left:72px;right:72px;top:500px')}
+ <div class="abs chip green cx" style="top:880px">✓ решение вступило в силу</div>`)+
+S('v4',`${H('Встречный иск не отменяет долг','left:72px;right:72px;top:600px;font-size:140px','c')}`),
+build(tl,A){
+  A.show('#v1',0); A.h('#v1 .h',.1); A.pop('#v1 .card',1.2); A.count('w1',860513,1.3,1.3); A.out('#v1',3.6);
+  A.show('#v2',4.0); A.pop('#v2 .side.l',4.0,{scale:.5,y:0,ease:'back.out(2)'}); A.pop('#v2 .side.r',4.2,{scale:.5,y:0,ease:'back.out(2)'});
+  tl.from('#arr1',{scaleX:0,transformOrigin:'0 50%',duration:.5,ease:'power3.out'},4.7);
+  A.pop('#work',5.2,{scale:.5,y:0,ease:'back.out(2.5)'});
+  tl.from('#arr2',{x:700,duration:.35,ease:'power4.in'},6.3);
+  A.shake('#v2 .side.l',6.65);
+  tl.to('#ct6',{opacity:1,duration:.01},8.4).from('#ct6',{y:-150,duration:.5,ease:'power3.out'},8.4);
+  A.stamp('#st6',9.2,-10);
+  tl.set('#v2 .shard',{opacity:1},9.9).set('#arr2',{opacity:0},9.9)
+    .to('#v2 .shard',{x:()=>gsap.utils.random(-500,500),y:()=>gsap.utils.random(300,900),rotation:()=>gsap.utils.random(-180,180),opacity:0,duration:1,ease:'power2.in'},9.9);
+  A.out('#v2',12.2);
+  A.show('#v3',12.6); A.pop('#v3 .card',12.6); A.count('w3',860513,12.7,1.2); A.pop('#v3 .chip',14.1,{scale:.5,y:0,ease:'back.out(2.5)'});
+  A.out('#v3',16.6);
+  A.show('#v4',17.0); A.h('#v4 .h',17.0); A.out('#v4',20.0);
+  return 20.4;
+}}
+];
+
+/* ---------------- ENGINE ---------------- */
+let tl=null, cur=0, recMode=false, recDone=false;
+const timeEl=$('#time'), tabs=$('#tabs');
+CASES.forEach((c,i)=>{const b=document.createElement('button');b.id='tab'+(i+1);b.innerHTML='Серия '+(i+1)+'<span class="nm"> · '+c.name+'</span>';b.onclick=()=>load(i,true);tabs.appendChild(b)});
+fit(); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+
+function load(i,play){
+  if(tl){tl.kill();gsap.globalTimeline.clear()}
+  cur=i; const C=CASES[i];
+  $$('#tabs button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i?'true':'false'));
+  inner.innerHTML=`<div id="head"><svg class="logo" viewBox="0 0 54 55" aria-label="ИЮР">${LOGO}</svg><div class="tag">Разбор дела · серия ${i+1}</div></div>`+C.html()+
+   S('cta',`<svg class="logo" viewBox="0 0 54 55">${LOGO}</svg><div class="abs h c" style="left:72px;right:72px;top:810px;font-size:120px">${C.cta}</div>
+    <div class="abs sub" style="left:72px;right:72px;top:1090px;text-align:center;color:var(--mute);font-size:46px">Досудебное и судебное взыскание</div>
+    <div class="abs pill cx" style="top:1230px;font-size:52px;padding:26px 46px">urreshenie.ru</div>`);
+  $$('#inner [data-words]').forEach(el=>{el.innerHTML=el.innerHTML.trim().split(/\s+/).map(w=>'<span class="w">'+w+'</span>').join(' ')});
+  // shrink any headline whose longest word doesn't fit its box
+  fitHeads();
+  gsap.set('#inner,#flash',{clearProps:'all'});
+  tl=gsap.timeline({paused:true,onUpdate:tick,onComplete:done});
+  const A={
+    show:(s,t)=>tl.set(s,{opacity:1},t),
+    h:(s,t)=>tl.from(s+' .w',{y:70,opacity:0,stagger:.08,duration:.4,ease:'power3.out'},t),
+    pop:(s,t,o={})=>tl.from(s,Object.assign({y:120,opacity:0,duration:.5,ease:'back.out(1.4)'},o),t),
+    fade:(s,t)=>tl.from(s,{opacity:0,y:30,duration:.4},t),
+    out:(s,t,o={})=>tl.to(s,Object.assign({opacity:0,y:-80,duration:.4,ease:'power2.in'},o),t),
+    count:(id,to,t,d=1.3)=>{const o={v:0};tl.to(o,{v:to,duration:d,ease:'power2.out',onUpdate:()=>{const e=document.getElementById(id);if(e)e.textContent=fmt(o.v)}},t)},
+    shake:(s,t)=>tl.to(s,{keyframes:{x:[0,-22,18,-12,8,0]},duration:.42,ease:'none'},t),
+    stamp:(s,t,rot=-12)=>{tl.fromTo(s,{scale:3.2,opacity:0,rotation:rot-12},{scale:1,opacity:1,rotation:rot,duration:.24,ease:'power4.in'},t)
+      .to('#flash',{opacity:.3,duration:.05,yoyo:true,repeat:1},t+.24).to('#inner',{keyframes:{x:[0,-22,18,-12,8,0]},duration:.42,ease:'none'},t+.24)},
+    draw:(s,t,d=.5,st=0)=>{$$(s).forEach(el=>{const L=el.getTotalLength();el.style.strokeDasharray=L;el.style.strokeDashoffset=L});
+      tl.to(s,{strokeDashoffset:0,duration:d,ease:'power2.inOut',stagger:st},t)}
+  };
+  const T=C.build(tl,A);
+  tl.set('#cta',{opacity:1},T)
+    .to('#head',{opacity:0,duration:.3},T-.4)
+    .from('#cta .logo',{scale:0,rotation:-90,duration:.6,ease:'back.out(1.7)'},T)
+    .from('#cta .h',{y:60,opacity:0,duration:.45,ease:'power3.out'},T+.35)
+    .from('#cta .sub',{opacity:0,duration:.4},T+.7)
+    .from('#cta .pill',{scale:.6,opacity:0,duration:.45,ease:'back.out(2)'},T+.95)
+    .to('#cta .pill',{scale:1.06,yoyo:true,repeat:1,duration:.3,ease:'sine.inOut'},T+2.0)
+    .to({},{duration:1.6},T+2.7);
+  ambient();
+  if(play) tl.play(0); else tick();
+}
+function fitHeads(){
+  $$('#inner .h').forEach(el=>{
+    if(el.dataset.fs0===undefined) el.dataset.fs0=el.style.fontSize; else el.style.fontSize=el.dataset.fs0;
+    let fs=parseFloat(getComputedStyle(el).fontSize), guard=0;
+    const over=()=>el.scrollWidth>el.clientWidth+1||[...el.querySelectorAll('.w')].some(w=>w.offsetLeft+w.offsetWidth>el.clientWidth+1);
+    while(over()&&fs>40&&guard++<60){fs-=4;el.style.fontSize=fs+'px'}
+  });
+}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{try{fitHeads()}catch(e){}});
+function ambient(){gsap.to('#grid',{x:120,y:120,duration:30,ease:'none',repeat:-1});gsap.to('#glow',{x:220,y:-160,duration:9,ease:'sine.inOut',yoyo:true,repeat:-1})}
+function tick(){timeEl.textContent=tl.time().toFixed(1)+' / '+tl.duration().toFixed(1)+' с'}
+function done(){ if(recMode){recDone=true;return} gsap.delayedCall(1.5,()=>{if(!recMode&&tl.progress()===1)tl.restart()}) }
+$('#bPlay').onclick=()=>{tl.restart();$('#bPause').textContent='Пауза'};
+$('#bPause').onclick=e=>{tl.paused(!tl.paused());e.target.textContent=tl.paused()?'Дальше':'Пауза'};
+function enterRec(){
+  recMode=true;recDone=false;document.body.classList.add('rec','wait');fit();
+  try{const r=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();r&&r.catch&&r.catch(()=>{})}catch(e){}
+  tl.pause(0);
+  setTimeout(()=>{fit();document.body.classList.remove('wait');tl.restart()},1500);
+}
+function exitRec(){recMode=false;document.body.classList.remove('rec','wait');try{document.fullscreenElement&&document.exitFullscreen()}catch(e){}fit();tl.restart()}
+$('#bRec').onclick=enterRec;
+document.addEventListener('click',e=>{if(recMode&&recDone&&!e.target.closest('#ui'))exitRec()});
+window.__series={load,get tl(){return tl}};
+const m=/^#r([1-6])$/.exec(location.hash);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+load(m?(+m[1]-1):0,!reduce);
+if(reduce) tl.progress(.85,false);
+})();
+</script>
+
+</body>
+</html>
